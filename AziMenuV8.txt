@@ -1,0 +1,559 @@
+-- Azi Script Hub | Custom UI
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local LP = Players.LocalPlayer
+local PG = LP:WaitForChild("PlayerGui")
+
+-- ─── CONFIGURATION (EDIT THIS) ───────────────────────────
+local HubName = "Azixyf"
+
+-- Add your scripts here. Title = Button text, Code = The script to run.
+-- Example: ["My Aimbot"] = "loadstring(game:HttpGet('url'))()",
+local Scripts = {
+    ["Aimbot"] = [[
+       -- Azi Aimbot | Strength & FOV Adjuster
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local UIS = game:GetService("UserInputService")
+local LP = Players.LocalPlayer
+local PG = LP:WaitForChild("PlayerGui")
+local Cam = Workspace.CurrentCamera
+
+local CFG = {
+    Enabled = true,
+    TeamCheck = true,
+    Part = "Head",
+    FOV = 150,
+    Strength = 0.3,
+}
+
+local sg = Instance.new("ScreenGui")
+sg.Name = "AziAim"
+sg.ResetOnSpawn = false
+sg.DisplayOrder = 100
+sg.Parent = PG
+
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0, 240, 0, 160)
+main.Position = UDim2.new(0.5, -120, 0.5, -80)
+main.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+main.BorderSizePixel = 0
+main.Active = true
+main.Parent = sg
+local mc = Instance.new("UICorner"); mc.CornerRadius = UDim.new(0, 8); mc.Parent = main
+local ms = Instance.new("UIStroke"); ms.Color = Color3.fromRGB(255, 255, 255); ms.Thickness = 1.5; ms.Parent = main
+
+local top = Instance.new("Frame")
+top.Size = UDim2.new(1, 0, 0, 30)
+top.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+top.BorderSizePixel = 0
+top.Parent = main
+local tc = Instance.new("UICorner"); tc.CornerRadius = UDim.new(0, 8); tc.Parent = top
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -20, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "Aimbot Settings"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 12
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = top
+
+-- Toggle
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Size = UDim2.new(1, -20, 0, 30)
+toggleBtn.Position = UDim2.new(0, 10, 0, 40)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(30, 200, 50)
+toggleBtn.Text = "Aimbot: ON"
+toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextSize = 12
+toggleBtn.Parent = main
+local tbc = Instance.new("UICorner"); tbc.CornerRadius = UDim.new(0, 6); tbc.Parent = toggleBtn
+
+toggleBtn.MouseButton1Click:Connect(function()
+    CFG.Enabled = not CFG.Enabled
+    toggleBtn.BackgroundColor3 = CFG.Enabled and Color3.fromRGB(30, 200, 50) or Color3.fromRGB(200, 30, 30)
+    toggleBtn.Text = CFG.Enabled and "Aimbot: ON" or "Aimbot: OFF"
+end)
+
+-- Slider function
+local function createSlider(text, y, minV, maxV, default, cb)
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(1, -20, 0, 40)
+    f.Position = UDim2.new(0, 10, 0, y)
+    f.BackgroundTransparency = 1
+    f.Parent = main
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, -40, 0, 15)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text
+    lbl.TextColor3 = Color3.fromRGB(200, 200, 200)
+    lbl.Font = Enum.Font.Gotham
+    lbl.TextSize = 11
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = f
+
+    local valLbl = Instance.new("TextLabel")
+    valLbl.Size = UDim2.new(0, 40, 0, 15)
+    valLbl.Position = UDim2.new(1, -40, 0, 0)
+    valLbl.BackgroundTransparency = 1
+    valLbl.Text = tostring(default)
+    valLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+    valLbl.Font = Enum.Font.GothamBold
+    valLbl.TextSize = 11
+    valLbl.TextXAlignment = Enum.TextXAlignment.Right
+    valLbl.Parent = f
+
+    local track = Instance.new("Frame")
+    track.Size = UDim2.new(1, 0, 0, 6)
+    track.Position = UDim2.new(0, 0, 0, 24)
+    track.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+    track.Parent = f
+    local tc2 = Instance.new("UICorner"); tc2.CornerRadius = UDim.new(1, 0); tc2.Parent = track
+
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new((default - minV) / (maxV - minV), 0, 1, 0)
+    fill.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    fill.Parent = track
+    local fc = Instance.new("UICorner"); fc.CornerRadius = UDim.new(1, 0); fc.Parent = fill
+
+    local dragging = false
+    local function setVal(a)
+        a = math.clamp(a, 0, 1)
+        local v = minV + (maxV - minV) * a
+        v = math.floor(v * 100) / 100
+        fill.Size = UDim2.new(a, 0, 1, 0)
+        valLbl.Text = tostring(v)
+        cb(v)
+    end
+    setVal((default - minV) / (maxV - minV))
+
+    track.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            setVal((i.Position.X - track.AbsolutePosition.X) / math.max(track.AbsoluteSize.X, 1))
+        end
+    end)
+    UIS.InputEnded:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then dragging = false end
+    end)
+    UIS.InputChanged:Connect(function(i)
+        if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+            setVal((i.Position.X - track.AbsolutePosition.X) / math.max(track.AbsoluteSize.X, 1))
+        end
+    end)
+end
+
+-- FOV Slider
+createSlider("FOV Size", 80, 20, 500, 150, function(v) 
+    CFG.FOV = v 
+    circle.Size = UDim2.new(0, CFG.FOV * 2, 0, CFG.FOV * 2)
+end)
+
+-- Strength Slider (Smoothness)
+createSlider("Strength", 125, 0.05, 1, 0.3, function(v) CFG.Strength = v end)
+
+-- FOV Circle
+local circle = Instance.new("Frame")
+circle.AnchorPoint = Vector2.new(0.5, 0.5)
+circle.Position = UDim2.new(0.5, 0, 0.5, 0)
+circle.Size = UDim2.new(0, CFG.FOV * 2, 0, CFG.FOV * 2)
+circle.BackgroundTransparency = 1
+circle.Parent = sg
+local cStroke = Instance.new("UIStroke"); cStroke.Color = Color3.fromRGB(255, 255, 255); cStroke.Thickness = 1.5; cStroke.Parent = circle
+local cCorner = Instance.new("UICorner"); cCorner.CornerRadius = UDim.new(1, 0); cCorner.Parent = circle
+
+-- ─── LOGIC ────────────────────────────────────────────────
+local function getTarget()
+    local closest, bd = nil, CFG.FOV
+    local center = Vector2.new(Cam.ViewportSize.X / 2, Cam.ViewportSize.Y / 2)
+    
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LP and plr.Character then
+            local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+            if hum and hum.Health > 0 then
+                if not (CFG.TeamCheck and plr.Team == LP.Team) then
+                    local part = plr.Character:FindFirstChild(CFG.Part)
+                    if part then
+                        local sp, on = Cam:WorldToViewportPoint(part.Position)
+                        if on and sp.Z > 0 then
+                            local d = (Vector2.new(sp.X, sp.Y) - center).Magnitude
+                            if d < bd then
+                                bd = d
+                                closest = part
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return closest
+end
+
+RunService.RenderStepped:Connect(function()
+    if not CFG.Enabled then return end
+    Cam = Workspace.CurrentCamera
+    local t = getTarget()
+    if t then
+        Cam.CFrame = Cam.CFrame:Lerp(CFrame.new(Cam.CFrame.Position, t.Position), CFG.Strength)
+    end
+end)
+
+-- Drag logic
+local dragging, dragStart, startPos
+top.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+        dragging = true; dragStart = i.Position; startPos = main.Position
+    end
+end)
+UIS.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then dragging = false end
+end)
+UIS.InputChanged:Connect(function(i)
+    if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+        local d = i.Position - dragStart
+        main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
+    end
+end) -- Paste aimbot code here
+    ]],
+    ["Rapid Fire"] = [[
+       local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local function applyToTool(tool)
+    tool:SetAttribute("RateOfFire", 100000)
+    tool:SetAttribute("rateOfFire", 100000)
+end
+
+local function watch(container)
+    for _, child in ipairs(container:GetChildren()) do
+        if child:IsA("Tool") then
+            applyToTool(child)
+        end
+    end
+    container.ChildAdded:Connect(function(child)
+        if child:IsA("Tool") then
+            applyToTool(child)
+        end
+    end)
+end
+
+if player.Character then watch(player.Character) end
+if player:FindFirstChildOfClass("Backpack") then watch(player:FindFirstChildOfClass("Backpack")) end
+
+player.CharacterAdded:Connect(watch)
+player.ChildAdded:Connect(function(child)
+    if child:IsA("Backpack") then
+        watch(child)
+    end
+end) -- Paste big head code here
+    ]],
+    ["Full ESP"] = [[
+       loadstring(game:HttpGet("https://pastebin.com/raw/VvBhX4ME"))() -- Paste ESP code here
+    ]],
+    ["Detects Aimbot"] = [[
+        loadstring(game:HttpGet("https://pastebin.com/raw/1TMMk4Y3"))()
+    ]],
+    
+    ["Another Script"] = [[
+    -- Azi Silent Aim | Mobile Supported
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local LP = Players.LocalPlayer
+local Cam = Workspace.CurrentCamera
+
+local CFG = {
+    Enabled = true,
+    TeamCheck = true,
+    WallCheck = true,
+    HitPart = "Head",
+    FOV = 150,
+}
+
+-- ─── UI ───────────────────────────────────────────────────
+local sg = Instance.new("ScreenGui")
+sg.Name = "AziSilentAim"
+sg.ResetOnSpawn = false
+sg.DisplayOrder = 999
+sg.Parent = LP:WaitForChild("PlayerGui")
+
+local btn = Instance.new("TextButton")
+btn.Size = UDim2.new(0, 60, 0, 60)
+btn.Position = UDim2.new(0, 20, 0.5, -30)
+btn.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+btn.Text = "SA"
+btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+btn.Font = Enum.Font.GothamBold
+btn.TextSize = 16
+btn.Draggable = true
+btn.Parent = sg
+Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
+
+local circle = Instance.new("Frame")
+circle.AnchorPoint = Vector2.new(0.5, 0.5)
+circle.Position = UDim2.new(0.5, 0, 0.5, 0)
+circle.Size = UDim2.new(0, CFG.FOV * 2, 0, CFG.FOV * 2)
+circle.BackgroundTransparency = 1
+circle.Parent = sg
+local stroke = Instance.new("UIStroke", circle)
+stroke.Color = Color3.fromRGB(255, 255, 255)
+stroke.Thickness = 1
+Instance.new("UICorner", circle).CornerRadius = UDim.new(1, 0)
+
+btn.MouseButton1Click:Connect(function()
+    CFG.Enabled = not CFG.Enabled
+    btn.BackgroundColor3 = CFG.Enabled and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(200, 0, 0)
+end)
+
+-- ─── LOGIC ────────────────────────────────────────────────
+local function hasLOS(part)
+    if not CFG.WallCheck then return true end
+    local rp = RaycastParams.new()
+    rp.FilterDescendantsInstances = {LP.Character, part.Parent}
+    rp.FilterType = Enum.RaycastFilterType.Exclude
+    local origin = Cam.CFrame.Position
+    local dir = part.Position - origin
+    return Workspace:Raycast(origin, dir, rp) == nil
+end
+
+local function getTarget()
+    local closest, bd = nil, CFG.FOV
+    local center = Vector2.new(Cam.ViewportSize.X / 2, Cam.ViewportSize.Y / 2)
+    
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LP and plr.Character then
+            local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+            if hum and hum.Health > 0 then
+                if not (CFG.TeamCheck and plr.Team == LP.Team) then
+                    local part = plr.Character:FindFirstChild(CFG.HitPart)
+                    if part then
+                        local sp, on = Cam:WorldToViewportPoint(part.Position)
+                        if on and sp.Z > 0 then
+                            local d = (Vector2.new(sp.X, sp.Y) - center).Magnitude
+                            if d < bd and hasLOS(part) then
+                                bd = d
+                                closest = part
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return closest
+end
+
+local oldNamecall
+oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+    local method = getnamecallmethod()
+    local args = {...}
+    
+    if CFG.Enabled and not checkcaller() then
+        if method == "FireServer" or method == "InvokeServer" then
+            if typeof(self) == "Instance" and (self.ClassName == "RemoteEvent" or self.ClassName == "RemoteFunction") then
+                -- Ignore anti-cheat remotes
+                if not self:FindFirstChild("__ADONIS") and not self.Name:lower():find("adonis") then
+                    local target = getTarget()
+                    if target then
+                        for i, v in ipairs(args) do
+                            if typeof(v) == "CFrame" then
+                                args[i] = CFrame.new(Cam.CFrame.Position, target.Position)
+                            elseif typeof(v) == "Vector3" then
+                                args[i] = target.Position
+                            end
+                        end
+                        return oldNamecall(self, table.unpack(args))
+                    end
+                end
+            end
+        end
+    end
+    return oldNamecall(self, ...)
+end)  -- script here
+    ]],
+    ["AziMenuV5"] = [[
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/azxifnexyz/aziNeverNaTrace-/refs/heads/main/codedbyazi_.x"))()  -- script here
+    ]],
+    
+    ["SntsMenuV5"] = [[
+     loadstring(game:HttpGet("https://raw.githubusercontent.com/azxifnexyz/SntsByAzi/refs/heads/main/Azi%20Snts.txt"))() -- script here
+    ]],
+}
+
+-- ─── UI SETUP ─────────────────────────────────────────────
+local sg = Instance.new("ScreenGui")
+sg.Name = "AziHub"
+sg.ResetOnSpawn = false
+sg.DisplayOrder = 100
+pcall(function() if gethui then sg.Parent = gethui() else sg.Parent = PG end end)
+if not sg.Parent then sg.Parent = PG end
+
+-- Main Window
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0, 400, 0, 320)
+main.Position = UDim2.new(0.5, -200, 0.5, -160)
+main.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+main.BorderSizePixel = 0
+main.Active = true
+main.Parent = sg
+local mainCorner = Instance.new("UICorner"); mainCorner.CornerRadius = UDim.new(0, 8); mainCorner.Parent = main
+local mainStroke = Instance.new("UIStroke"); mainStroke.Color = Color3.fromRGB(255, 255, 255); mainStroke.Thickness = 1.5; mainStroke.Parent = main
+
+-- Top Bar
+local topBar = Instance.new("Frame")
+topBar.Size = UDim2.new(1, 0, 0, 35)
+topBar.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+topBar.BorderSizePixel = 0
+topBar.Parent = main
+local topCorner = Instance.new("UICorner"); topCorner.CornerRadius = UDim.new(0, 8); topCorner.Parent = topBar
+
+local topFix = Instance.new("Frame")
+topFix.Size = UDim2.new(1, 0, 0, 10)
+topFix.Position = UDim2.new(0, 0, 1, -10)
+topFix.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+topFix.BorderSizePixel = 0
+topFix.Parent = topBar
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -20, 1, 0)
+title.Position = UDim2.new(0, 12, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = HubName
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 13
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = topBar
+
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 20, 0, 20)
+closeBtn.Position = UDim2.new(1, -28, 0, 7)
+closeBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+closeBtn.Text = "X"
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 10
+closeBtn.Parent = topBar
+local closeCorner = Instance.new("UICorner"); closeCorner.CornerRadius = UDim.new(0, 4); closeCorner.Parent = closeBtn
+closeBtn.MouseButton1Click:Connect(function() main.Visible = false end)
+
+-- Left Side: Buttons
+local buttonPanel = Instance.new("ScrollingFrame")
+buttonPanel.Size = UDim2.new(0, 150, 1, -45)
+buttonPanel.Position = UDim2.new(0, 10, 0, 40)
+buttonPanel.BackgroundTransparency = 1
+buttonPanel.BorderSizePixel = 0
+buttonPanel.ScrollBarThickness = 4
+buttonPanel.CanvasSize = UDim2.new(0, 0, 0, 0)
+buttonPanel.Parent = main
+local btnLayout = Instance.new("UIListLayout"); btnLayout.Padding = UDim.new(0, 8); btnLayout.Parent = buttonPanel
+
+-- Right Side: Custom Executor
+local execBox = Instance.new("TextBox")
+execBox.Size = UDim2.new(0, 220, 1, -90)
+execBox.Position = UDim2.new(0, 170, 0, 40)
+execBox.BackgroundColor3 = Color3.fromRGB(10, 10, 12)
+execBox.BorderColor3 = Color3.fromRGB(255, 255, 255)
+execBox.BorderSizePixel = 1
+execBox.Text = "-- Custom Executor\n-- Paste script here"
+execBox.TextColor3 = Color3.fromRGB(200, 200, 200)
+execBox.Font = Enum.Font.Code
+execBox.TextSize = 11
+execBox.TextXAlignment = Enum.TextXAlignment.Left
+execBox.TextYAlignment = Enum.TextYAlignment.Top
+execBox.ClearTextOnFocus = false
+execBox.MultiLine = true
+execBox.TextWrapped = true
+execBox.Parent = main
+local execCorner = Instance.new("UICorner"); execCorner.CornerRadius = UDim.new(0, 6); execCorner.Parent = execBox
+
+local executeBtn = Instance.new("TextButton")
+executeBtn.Size = UDim2.new(0, 220, 0, 35)
+executeBtn.Position = UDim2.new(0, 170, 1, -40)
+executeBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+executeBtn.Text = "EXECUTE CUSTOM SCRIPT"
+executeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+executeBtn.Font = Enum.Font.GothamBold
+executeBtn.TextSize = 12
+executeBtn.Parent = main
+local execBtnCorner = Instance.new("UICorner"); execBtnCorner.CornerRadius = UDim.new(0, 6); execBtnCorner.Parent = executeBtn
+local execBtnStroke = Instance.new("UIStroke"); execBtnStroke.Color = Color3.fromRGB(255, 255, 255); execBtnStroke.Thickness = 1; execBtnStroke.Parent = executeBtn
+
+-- ─── GENERATE BUTTONS ─────────────────────────────────────
+local count = 0
+for scriptName, scriptCode in pairs(Scripts) do
+    count = count + 1
+    
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, -8, 0, 32)
+    btn.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+    btn.Text = scriptName
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 12
+    btn.LayoutOrder = count
+    btn.Parent = buttonPanel
+    
+    local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, 6); c.Parent = btn
+    local s = Instance.new("UIStroke"); s.Color = Color3.fromRGB(255, 255, 255); s.Thickness = 1; s.Parent = btn
+    
+    -- Hover effect
+    btn.MouseEnter:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    end)
+    btn.MouseLeave:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+    end)
+    
+    -- Click execution
+    btn.MouseButton1Click:Connect(function()
+        local success, err = pcall(function()
+            local func = loadstring(scriptCode)
+            if func then func() end
+        end)
+        if not success then
+            warn("[Azi Hub] Error executing " .. scriptName .. ": " .. tostring(err))
+        end
+    end)
+end
+
+buttonPanel.CanvasSize = UDim2.new(0, 0, 0, btnLayout.AbsoluteContentSize.Y + 10)
+
+-- ─── CUSTOM EXECUTOR LOGIC ────────────────────────────────
+executeBtn.MouseButton1Click:Connect(function()
+    local code = execBox.Text
+    if code == "" or code == "-- Custom Executor\n-- Paste script here" then return end
+    
+    local success, err = pcall(function()
+        local func = loadstring(code)
+        if func then func() end
+    end)
+    
+    if not success then
+        warn("[Azi Hub] Error executing custom script: " .. tostring(err))
+    end
+end)
+
+-- ─── DRAG LOGIC ───────────────────────────────────────────
+local dragging, dragStart, startPos
+topBar.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+        dragging = true; dragStart = i.Position; startPos = main.Position
+    end
+end)
+UIS.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then dragging = false end
+end)
+UIS.InputChanged:Connect(function(i)
+    if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+        local d = i.Position - dragStart
+        main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
+    end
+end)
